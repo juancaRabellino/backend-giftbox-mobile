@@ -12,7 +12,7 @@ const paqueteSchema= new mongoose.Schema({
     cantidadVendidos:[{idUsuario: {type: mongoose.Schema.ObjectId , ref: "usuario"}, cantidad: Number}],
     valoracion: [{
         idUsuario:{type:String,required:true},
-        valor: Number
+        valor:{type:Number , required:false, default:0},
     }],
     opiniones: [{
         idUsuario:{type:String,required:true},

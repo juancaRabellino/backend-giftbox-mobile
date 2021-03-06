@@ -29,22 +29,59 @@ const usuarioController = {
             response: errors.length===0 && {token,id: usuarioExistente._id, nombre:usuarioExistente.nombre,
                 apellido:usuarioExistente.apellido,imagen:usuarioExistente.imagen,rol:usuarioExistente.rol
                 ,googleUser:usuarioExistente.googleUser}
-        })
+            })
     },
-    editarUsuario: async(req,res) =>{
-        const {imgFile}= req.files
-
-        const imgTipo=imgFile.name.split(".").slice(-1).join(" ")
-        const {cuenta,password,nombre,apellido}=req.body
-        var imgName= `${req.params}.${imgTipo}`
-        
-        await Usuario.findOneAndUpdate(
-            req.params,
-            {'$set':{cuenta,password,nombre,apellido,imgName}},
+    editarUsuarioPass: async(req,res) =>{
+        var errors=[]
+        const {password}=req.body
+        const id= req.params._id
+        const passwordHasheado = bcryptjs.hashSync(password, 10)
+        const usuarioExistente = await Usuario.findOneAndUpdate({_id:id},
+            {'$set':{password:passwordHasheado}},
             {new:true})
-        
-        .then(()=>{return res.json({success: true, response:'Usuario Editado'})})
-        .catch(error =>{return res.json({success:false, response: 'Error al editar Usuario'})})
+
+        if(!usuarioExistente){errors.push("Cuenta o contraseña incorrecta")}
+        else if (usuarioExistente){
+            const passwordMatches= bcryptjs.compareSync(password,usuarioExistente.password);
+        if(!passwordMatches){errors.push("Cuenta o contraseña incorrecta")}
+        return res.json({
+            success: errors.length===0? true:false,
+            errors: errors,
+            response: errors.length===0 && {password:usuarioExistente.password}
+        })
+    }},
+    editarUsuarioImg: async(req,res) =>{
+        var errors=[]
+
+        const {imgFile}= req.files
+        const id= req.params._id
+        console.log(req.files)
+        const imgTipo= imgFile.name.split(".").slice(-1).join(" ")
+        const imagenName= imgFile.name.split(".").slice(0,-1)
+        console.log(imagenName)
+        var imgName = `${imagenName[0]}.${imgTipo}`
+        // var imgPath= `${__dirname}/../frontend/public/usuarioImg/${id}.${imgTipo}`
+
+        // await imgFile.mv(imgPath,error=>{
+        //     if(error){
+        //         errors.push(error)}
+        //         else{
+                    
+        //         }})
+        // nuevoUsuario.imagen = imgName;
+
+        const usuarioExistente = await Usuario.findOneAndUpdate({_id:id},
+            {'$set':{imagen:imgName}},
+            {new:true}
+        )
+        console.log(imgName)
+        console.log(usuarioExistente)
+
+        return res.json({
+            success: errors.length===0? true:false,
+            errors: errors,
+            response: errors.length===0 && {imagen:usuarioExistente.imgName}
+        })
     },
     agregarUsuario: async (req,res)=>{
         var errors=[];
@@ -63,8 +100,7 @@ const usuarioController = {
                 const {imgFile}= req.files;
                 
                 const imgTipo= imgFile.name.split(".").slice(-1).join(" ");
-                console.log(imgFile)
-                console.log(imgTipo)
+
                 var imgName= `${nuevoUsuario._id}.${imgTipo}`
                 var imgPath= `${__dirname}/../frontend/public/usuarioImg/${nuevoUsuario._id}.${imgTipo}`
                 
@@ -74,7 +110,7 @@ const usuarioController = {
                         else{
                             
                         }})
-                        nuevoUsuario.imagen = googlePic;
+                nuevoUsuario.imagen = imgName;
             }
             else{
                 
@@ -105,12 +141,14 @@ const usuarioController = {
     },
 
     logFromLS: (req, res) => {
+        console.log(req.user)
         res.json({success: true,
           response: {
             token: req.body.token,
             nombre: req.user.nombre,
             imagen: req.user.imagen,
-            googleUser: req.user.googleUser
+            googleUser: req.user.googleUser,
+            id: req.user.id
           },
         });
       },

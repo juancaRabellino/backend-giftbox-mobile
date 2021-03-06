@@ -35,7 +35,7 @@ router.route("/paquetes/:_id")
 // CONTROLADOR DE USUARIO
 router.route('/usuarios/:_id')
   .delete(usuarioController.eliminarUsuario)
-  .put(usuarioController.editarUsuario)
+  .put(usuarioController.editarUsuarioPass)
   .get(usuarioController.unUsuario)
 router.route("/usuarios")
   // .post(validador.validarNuevaCuenta, usuarioController.agregarUsuario)
@@ -43,6 +43,9 @@ router.route("/usuarios")
   .get(usuarioController.todosLosUsuarios)
 router.route("/login")
   .post(usuarioController.login)
+router.route('/imagen/:_id')
+  .put(usuarioController.editarUsuarioImg)
+  
 
   router.route('/usuarios/ls')
 .post(passport.authenticate('jwt', {session: false}), usuarioController.logFromLS)
